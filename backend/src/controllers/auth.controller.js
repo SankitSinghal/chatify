@@ -39,6 +39,14 @@ export const signup = async (req, res) => {
 
         await newUser.save();
 
+        if(newUser) {
+            
+        }
+
+        //persist user first, then issue auth cookie
+        const savedUser = await newUser.save();
+        generateToken(savedUser._id, res);
+
         // generate JWT token
         generateToken(newUser._id, res);
 
@@ -57,3 +65,4 @@ export const signup = async (req, res) => {
         return res.status(500).json({ message: "Internal server error" });
     }
 };
+
