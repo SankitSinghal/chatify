@@ -1,6 +1,7 @@
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import { generateToken } from "../utils/generaeToken.js";
+import "dotenv/config.js";
 
 export const signup = async (req, res) => {
     const { fullName, email, password } = req.body;
@@ -58,6 +59,12 @@ export const signup = async (req, res) => {
         });
 
         //todo: send welcome email to new user
+
+        try {
+            await sendWelcomeEmail(savedUser.email, savedUser.fullName, process.env.CLIENT_URL);
+        } catch (error) {
+            console.log("Error sending welcome email:", error);
+        }
          
 
     } catch (error) {
