@@ -3,7 +3,8 @@ import bcrypt from "bcryptjs";
 import { generateToken } from "../utils/generaeToken.js";
 import { ENV }  from "../lib/env.js";
 import { sendWelcomeEmail } from "../emails/emailHandler.js";
-import { maxSatisfying } from "semver";
+import { maxSatisfying } from "semver"; 
+import cloudinary from "../lib/cloudinary.js";
 
 export const signup = async (req, res) => {
     const { fullName, email, password } = req.body;
@@ -72,7 +73,7 @@ export const login  = async (req, res) => {
     if(!email || !password) {
         return res.status(400).json({ message: "All fields are required" });
     }
-    
+
     try {
         const user = await User.findOne({ email })
         if(!user) return res.status(400).json({ message: "Invalid credentials" });
@@ -99,4 +100,27 @@ export const login  = async (req, res) => {
 export const logout = (_, res) => {
     res.cookie("jwt", "", {maxAge: 0 })
     res.status(200).json({ message: "Logged out successfully" });
+};
+
+export const updateProfile = async (req, res) => {
+    try {
+        const { profilePic } = req.body;
+        if (!profilePic) return res.status(400).json({ message: "Profile picture is required" });
+
+        const userId = req.user._id; 
+
+        const uploadedResponse = await cloudinary.uploader.upload(profilePic) 
+        const updatedUser = await User.findByIdAndUpdate(
+            userId, 
+            { profilePic: uploadedResponse.secure_url }, 
+            { new: true }
+        );
+
+        res.status(200).json(updatedUser);      
+            
+    } catch (error) {
+        console.log("Error in updateProfile:", error);
+        res.status(500).json({ message: "Internal server error" });
+        
+    }
 };
