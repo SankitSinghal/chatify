@@ -1,6 +1,6 @@
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
-import { generateToken } from "../utils/generaeToken.js";
+import { generateToken } from "../utils/generateToken.js";
 import { ENV }  from "../lib/env.js";
 import { sendWelcomeEmail } from "../emails/emailHandler.js";
 import { maxSatisfying } from "semver"; 
