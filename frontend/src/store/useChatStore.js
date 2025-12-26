@@ -38,7 +38,7 @@ export const useChatStore = create((set, get) => ({
       const res = await axiosInstance.get("/messages/chats");
       set({ chats: res.data });
     } catch (error) {
-      toast.error(error.response.data.message);
+      toast.error(error.response.data.message); 
     } finally {
       set({ isUsersLoading: false });
     }
@@ -76,7 +76,7 @@ export const useChatStore = create((set, get) => ({
 
     try {
       const res = await axiosInstance.post(`/messages/send/${selectedUser._id}`, messageData);
-      set({ messages: messages.concat(res.data) });
+      set({ messages: messages.concat(res.data) }); 
     } catch (error) {
       // remove optimistic message on failure
       set({ messages: messages });
@@ -85,22 +85,25 @@ export const useChatStore = create((set, get) => ({
   },
 
   subscribeToMessages: () => {
-    const { selectedUser, isSoundEnabled } = get();
-    if (!selectedUser) return;
-
     const socket = useAuthStore.getState().socket;
+    if (!socket) return;
+
+    // IMPORTANT: Unsubscribe from any existing listener first to prevent duplicates
+    socket.off("newMessage");
 
     socket.on("newMessage", (newMessage) => {
+      // We use get() INSIDE the listener to always have the latest selectedUser
+      const { selectedUser, messages, isSoundEnabled } = get();
+      
+      if (!selectedUser) return;
+
       const isMessageSentFromSelectedUser = newMessage.senderId === selectedUser._id;
       if (!isMessageSentFromSelectedUser) return;
 
-      const currentMessages = get().messages;
-      set({ messages: [...currentMessages, newMessage] });
+      set({ messages: [...messages, newMessage] });
 
       if (isSoundEnabled) {
         const notificationSound = new Audio("/sounds/notification.mp3");
-
-        notificationSound.currentTime = 0; // reset to start
         notificationSound.play().catch((e) => console.log("Audio play failed:", e));
       }
     });
